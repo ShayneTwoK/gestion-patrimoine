@@ -3,7 +3,6 @@ package sio.example.gestion_patrimoine;
 import android.Manifest;
 import android.app.Dialog;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -20,7 +19,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMyLocationClickListener, GoogleMap.OnMyLocationButtonClickListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     // CONSTANTES
     private static final String TAGMap = "MapActivity";
