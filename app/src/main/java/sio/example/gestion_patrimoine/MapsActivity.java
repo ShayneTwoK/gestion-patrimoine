@@ -3,6 +3,7 @@ package sio.example.gestion_patrimoine;
 import android.Manifest;
 import android.app.Dialog;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -19,7 +20,11 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MapsActivity
+        extends AppCompatActivity
+        implements OnMapReadyCallback,
+        GoogleMap.OnMyLocationClickListener,
+        GoogleMap.OnMyLocationButtonClickListener {
 
     // CONSTANTES
     private static final String TAGMap = "MapActivity";
@@ -104,7 +109,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 mMap.setMyLocationEnabled(true);
             } else {
-                // Permission was denied. Display an error message.
+                Toast.makeText(this, "Permission Localisation refusé", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -150,4 +155,5 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // (the camera animates to the user's current position).
         return false;
     }
+
 }
