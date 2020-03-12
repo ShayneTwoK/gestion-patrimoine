@@ -16,9 +16,12 @@ import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 
 public class MapsActivity
         extends AppCompatActivity
@@ -45,8 +48,17 @@ public class MapsActivity
         mMap = googleMap;
 
         if (permissionsAccordee) {
+
             getLocalisationDevice();
+            // Localisation de Lyon
+            CameraUpdate Lyon = CameraUpdateFactory.newLatLngZoom(new LatLng(45.75,4.85) , 12f);
+            // Init de la Map sur Lyon
+            mMap.moveCamera(Lyon);
+            // Affichage des routes nationales
+            // mMap.setTrafficEnabled(true);
+            // Bouton focus,zoom sur la position actuel
             mMap.setOnMyLocationButtonClickListener(this);
+            // Event OnClick activé du boutton "Focus"
             mMap.setOnMyLocationClickListener(this);
         }
     }
@@ -105,7 +117,7 @@ public class MapsActivity
 
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (permissions.length == 1 &&
-                    permissions[0] == Manifest.permission.ACCESS_FINE_LOCATION &&
+                    permissions[0].equals(Manifest.permission.ACCESS_FINE_LOCATION) &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 mMap.setMyLocationEnabled(true);
             } else {
