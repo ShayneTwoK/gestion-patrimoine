@@ -48,14 +48,11 @@ public class MapsActivity
         mMap = googleMap;
 
         if (permissionsAccordee) {
-
             getLocalisationDevice();
             // Localisation de Lyon
-            CameraUpdate Lyon = CameraUpdateFactory.newLatLngZoom(new LatLng(45.75,4.85) , 12f);
+            CameraUpdate Lyon = CameraUpdateFactory.newLatLngZoom(new LatLng(45.75, 4.85), 12f);
             // Init de la Map sur Lyon
             mMap.moveCamera(Lyon);
-            // Affichage des routes nationales
-            // mMap.setTrafficEnabled(true);
             // Bouton focus,zoom sur la position actuel
             mMap.setOnMyLocationButtonClickListener(this);
             // Event OnClick activé du boutton "Focus"
@@ -65,14 +62,12 @@ public class MapsActivity
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
         if (isServicesOK()) {
             getPermissionLocalisation();
         }
-
     }
 
     ///// INITIALISE LA MAP /////
@@ -88,7 +83,7 @@ public class MapsActivity
 
     ///// RECUPERE LA PERMISSION DONNER PAR LE USER /////
     private void getPermissionLocalisation() {
-        Log.d(TAGMap, "getLocationPermission: Permissions de localisation");
+        Log.d(TAGLocalisation, "getLocationPermission: Permissions de localisation");
         String[] permissions = {FINE_LOCATION, COARSE_LOCATION};
 
         if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
@@ -112,7 +107,7 @@ public class MapsActivity
     ///// RETOUR DE LA DEMANDE DE PERMISSION DU GPS /////
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        Log.d(TAGMap, "onRequestPermissionsResult: Appel de la méthode");
+        Log.d(TAGLocalisation, "onRequestPermissionsResult: Appel de la méthode");
         permissionsAccordee = false;
 
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
@@ -126,23 +121,21 @@ public class MapsActivity
         }
     }
 
-    ///// VERIFICATION DES SERVICES GOOGLE FONCTIONELS /////
+    ///// VERIFICATION DES SERVICES GOOGLE FONCTIONNELS /////
     public boolean isServicesOK() {
-        Log.d(TAGMap, "isServicesOK: checking google services version");
-
+        Log.d(TAGMap, "isServicesOK: Check de la version des Google Services");
         int available = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(MapsActivity.this);
 
         if (available == ConnectionResult.SUCCESS) {
-            //everything is fine and the user can make map requests
-            Log.d(TAGMap, "isServicesOK: Google Play Services is working");
+            // le user peut faire des MapRequest
+            Log.d(TAGMap, "isServicesOK: Google Play Services fonctionne");
             return true;
         } else if (GoogleApiAvailability.getInstance().isUserResolvableError(available)) {
-            //an error occured but we can resolve it
-            Log.d(TAGMap, "isServicesOK: an error occured but we can fix it");
+            Log.d(TAGMap, "isServicesOK: Erreur récuperation des services Google");
             Dialog dialog = GoogleApiAvailability.getInstance().getErrorDialog(MapsActivity.this, available, ERROR_DIALOG_REQUEST);
             dialog.show();
         } else {
-            Toast.makeText(this, "You can't make map requests", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Requete sur la Map impossible", Toast.LENGTH_SHORT).show();
         }
         return false;
     }
@@ -156,13 +149,12 @@ public class MapsActivity
 
     @Override
     public void onMyLocationClick(@NonNull Location location) {
-        Toast.makeText(this, "Current location:\n" + location, Toast.LENGTH_LONG).show();
-
     }
+
 
     @Override
     public boolean onMyLocationButtonClick() {
-        Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Localisation en cours...", Toast.LENGTH_SHORT).show();
         // Return false so that we don't consume the event and the default behavior still occurs
         // (the camera animates to the user's current position).
         return false;
