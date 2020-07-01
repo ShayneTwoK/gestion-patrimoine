@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/nav_connexion">
+
+    <fragment
+        android:id="@+id/nav_connexion"
+        android:name="com.example.toolbartest.ui.connexion.ConnexionFragment"
+        android:label="Cékoica"
+        tools:layout="@layout/fragment_connexion" />
+
+    <fragment
+        android:id="@+id/nav_inscription"
+        android:name="com.example.toolbartest.ui.inscription.InscriptionFragment"
+        android:label="Cékoica"
+        tools:layout="@layout/fragment_inscription" />
+</navigation>
