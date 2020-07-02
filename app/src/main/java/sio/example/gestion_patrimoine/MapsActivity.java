@@ -4,6 +4,8 @@ import android.Manifest;
 import android.app.Dialog;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -12,7 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentManager;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -25,9 +27,7 @@ import com.google.android.gms.maps.model.LatLng;
 
 public class MapsActivity
         extends AppCompatActivity
-        implements OnMapReadyCallback,
-        GoogleMap.OnMyLocationClickListener,
-        GoogleMap.OnMyLocationButtonClickListener {
+        implements LocationListener {
 
     // CONSTANTES
     private static final String TAGMap = "MapActivity";
@@ -38,87 +38,101 @@ public class MapsActivity
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
 
     // VARIABLES
-    private Boolean permissionsAccordee = false;
     private GoogleMap mMap;
+    private LocationManager lm;
+    private SupportMapFragment supportMapFragment;
 
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        Toast.makeText(this, "Map Prête", Toast.LENGTH_SHORT).show();
-        Log.d(TAGMap, "onMapReady: map correctement afficher");
-        mMap = googleMap;
 
-        if (permissionsAccordee) {
-            getLocalisationDevice();
-            // Localisation de Lyon
-            CameraUpdate Lyon = CameraUpdateFactory.newLatLngZoom(new LatLng(45.75, 4.85), 12f);
-            // Init de la Map sur Lyon
-            mMap.moveCamera(Lyon);
-            // Bouton focus,zoom sur la position actuel
-            mMap.setOnMyLocationButtonClickListener(this);
-            // Event OnClick activé du boutton "Focus"
-            mMap.setOnMyLocationClickListener(this);
-        }
-    }
+//    @Override
+//    public void onMapReady(GoogleMap googleMap) {
+//        Toast.makeText(this, "Map Prête", Toast.LENGTH_SHORT).show();
+//        Log.d(TAGMap, "onMapReady: map correctement afficher");
+//        mMap = googleMap;
+//
+//        if (permissionsAccordee) {
+//            getLocalisationDevice();
+//            // Bouton focus,zoom sur la position actuel
+//            mMap.setOnMyLocationButtonClickListener(this);
+//            // Event OnClick activé du boutton "Focus"
+//            mMap.setOnMyLocationClickListener(this);
+//        }
+//    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        FragmentManager supportFragmentManager = getSupportFragmentManager();
+        supportMapFragment = (SupportMapFragment) supportFragmentManager.findFragmentById(R.id.map);
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         if (isServicesOK()) {
-            getPermissionLocalisation();
+            verificationDesPermissions();
         }
     }
 
-    ///// INITIALISE LA MAP /////
-    private void initMap() {
-        Log.d(TAGMap, "initMap: Map Initialisé");
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+    private void verificationDesPermissions() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            String[] permissions = {FINE_LOCATION, COARSE_LOCATION};
 
-        // Eviter le NullPointerException
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(MapsActivity.this);
+            ActivityCompat.requestPermissions(this, permissions, LOCATION_PERMISSION_REQUEST_CODE);
+            return;
         }
-    }
 
-    ///// RECUPERE LA PERMISSION DONNER PAR LE USER /////
-    private void getPermissionLocalisation() {
-        Log.d(TAGLocalisation, "getLocationPermission: Permissions de localisation");
-        String[] permissions = {FINE_LOCATION, COARSE_LOCATION};
-
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                    COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                permissionsAccordee = true;
-                initMap();
-            } else {
-                ActivityCompat.requestPermissions(this,
-                        permissions,
-                        LOCATION_PERMISSION_REQUEST_CODE);
-            }
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    permissions,
-                    LOCATION_PERMISSION_REQUEST_CODE);
+        lm = (LocationManager) getSystemService(LOCATION_SERVICE);
+        if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0, this);
         }
+        if (lm.isProviderEnabled(LocationManager.PASSIVE_PROVIDER)) {
+            lm.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 10000, 0, this);
+        }
+        if (lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 0, this);
+        }
+
+        initMap();
     }
 
     ///// RETOUR DE LA DEMANDE DE PERMISSION DU GPS /////
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         Log.d(TAGLocalisation, "onRequestPermissionsResult: Appel de la méthode");
-        permissionsAccordee = false;
 
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if (permissions.length == 1 &&
-                    permissions[0].equals(Manifest.permission.ACCESS_FINE_LOCATION) &&
-                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                mMap.setMyLocationEnabled(true);
-            } else {
-                Toast.makeText(this, "Permission Localisation refusé", Toast.LENGTH_SHORT).show();
-            }
+            verificationDesPermissions();
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (lm != null) {
+            lm.removeUpdates(this);
+        }
+    }
+
+    ///// INITIALISE LA MAP /////
+    @SuppressWarnings("MissingPermission")
+    private void initMap() {
+        Log.d(TAGMap, "initMap: Map Initialisé");
+        supportMapFragment.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                Log.d(TAGMap, "onMapReady: map correctement afficher");
+                MapsActivity.this.mMap = googleMap;
+                // Localisation de Lyon
+                CameraUpdate Lyon = CameraUpdateFactory.newLatLngZoom(new LatLng(45.75, 4.85), 12f);
+                // Init de la Map sur Lyon
+                googleMap.moveCamera(Lyon);
+                googleMap.setMyLocationEnabled(true);
+            }
+        });
     }
 
     ///// VERIFICATION DES SERVICES GOOGLE FONCTIONNELS /////
@@ -140,24 +154,31 @@ public class MapsActivity
         return false;
     }
 
-    ///// LOCALISATION DU SMARTPHONE /////
-    private void getLocalisationDevice() {
-        if (PackageManager.PERMISSION_GRANTED == ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-            mMap.setMyLocationEnabled(true);
-        }
+    @Override
+    public void onLocationChanged(Location location) {
+//        double latitude = location.getLatitude();
+//        double longitude = location.getLongitude();
+
+        // Ramene le focus de la fenetre sur la position de l'user
+//        if (mMap != null) {
+//            LatLng googleLocation = new LatLng(latitude, longitude);
+//            CameraUpdate positionActuelleUser = CameraUpdateFactory.newLatLng(googleLocation);
+//            mMap.moveCamera(positionActuelleUser);
+//        }
     }
 
     @Override
-    public void onMyLocationClick(@NonNull Location location) {
-    }
+    public void onStatusChanged(String provider, int status, Bundle extras) {
 
+    }
 
     @Override
-    public boolean onMyLocationButtonClick() {
-        //Toast.makeText(this, "Localisation en cours...", Toast.LENGTH_SHORT).show();
-        // Return false so that we don't consume the event and the default behavior still occurs
-        // (the camera animates to the user's current position).
-        return false;
+    public void onProviderEnabled(String provider) {
+
     }
 
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
 }
